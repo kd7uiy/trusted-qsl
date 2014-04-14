@@ -40,8 +40,9 @@ public class Station implements Serializable {
 	public String satName;
 	public String mode;
 	public String usCounty;
-	public String state;
+	public String usState;
 	public int uid;
+	public String baseSig;
 
 	@Override
 	public String toString() {
@@ -58,8 +59,9 @@ public class Station implements Serializable {
 		sb.append(",satName:"+satName);
 		sb.append(",mode:"+mode);
 		sb.append(",usCounty:"+usCounty);
-		sb.append(",state:"+state);
+		sb.append(",usState:"+usState);
 		sb.append(",uid:"+uid);
+		sb.append(",baseSig:"+baseSig);
 		sb.append(")");
 		return sb.toString();
 	}

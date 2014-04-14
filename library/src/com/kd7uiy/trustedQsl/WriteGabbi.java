@@ -32,6 +32,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.Signature;
 import java.security.SignatureException;
+import java.security.cert.X509Certificate;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
@@ -44,6 +45,7 @@ public abstract class WriteGabbi {
 	private String mCallSign;
 	private SimpleDateFormat mTimeFormat;
 	private PrivateKey mKey;
+	private X509Certificate mCertificate;
 	private static SimpleDateFormat mIso8601Format;
 	private static SimpleDateFormat mDateFormat;
 
@@ -57,7 +59,8 @@ public abstract class WriteGabbi {
 	abstract void publishProgress(int numComplete); // Optional, publishes the
 													// progress of results.
 
-	public WriteGabbi(PrivateKey key) {
+	public WriteGabbi(PrivateKey key, X509Certificate certificate) {
+		mCertificate=certificate;
 		mKey=key;
 		mDateFormat = new SimpleDateFormat("yyyy-MM-dd");
 		mTimeFormat = new SimpleDateFormat("HH:mm:ssZ");
@@ -75,19 +78,24 @@ public abstract class WriteGabbi {
 		Station[] stations = getStations();
 		for (Station station : stations) {
 			station.uid = stationUID;
-			writeStation(out, station);
+			station.baseSig=writeStation(out, station);
 			stationUID++;
 		}
 		int complete = 0;
 		for (Station station : stations) {
 			for (QsoData data : getQsoData(station)) {
-				writeQso(out, data, station.uid);
+				writeQso(out, data, station);
 				publishProgress(++complete);
 			}
 		}
 	}
 
 	private void writeHeader(BufferedOutputStream os) throws IOException {
+		writeTag(os,"REC_TYPE","tCERT");
+		writeTag(os,"CERT_UID","1");	//Assuming only 1 certificate per file
+		writeTag(os,"CERTIFICATE",getCertificate());
+		os.write("<EOR>\n".getBytes());
+		
 		writeTag(os, "REC_TYPE", "tHEADER");
 		writeTag(os, "CATEGORY", "tQSL");
 		writeTag(os, "GabbI_CREATED_BY", getApplicationName());
@@ -101,43 +109,51 @@ public abstract class WriteGabbi {
 		os.write("<EOR>\n".getBytes());
 	}
 
-	private void writeStation(BufferedOutputStream os, Station station)
-			throws IOException {
-		writeTag(os, "REC_TYPE", "tSTATION");
-		writeTag(os, "CALL", mCallSign);
-		writeTag(os, "CONT", station.continent); // Look up continent
-		writeTag(os, "CQZ", station.cqz); // Look up CQ Zone
-		writeTag(os, "DXCC", "" + station.dxcc); // Look this up, should be a
-													// number
-		writeTag(os, "EMAIL_ADDRESS", station.emailAddress);
-		writeTag(os, "GRIDSQUARE", station.grid);
-		writeTag(os, "IOTA", station.iota); // If/When implemented
-		writeTag(os, "ITUZ", station.ituz); // ITU Zone
-		writeTag(os, "POSTAL_CODE", station.zipCode); // Zip Code
-		if (station.satName != null) {
-			writeTag(os, "SAT_NAME", station.satName);
-			writeTag(os, "SAT_MODE", station.mode);
-		}
-		writeTag(os, "STATION_UID", "" + station.uid);
-		writeTag(os, "SUB_GOV1", station.state); // Look up to standard
-		writeTag(os, "US_COUNTY", station.usCounty); // Look up to standard
-		os.write("<EOR>\n".getBytes());
+	private String getCertificate() {
+		return new String(Base64Coder.encode(mCertificate.getSignature()));
 	}
 
-	private void writeQso(BufferedOutputStream os, QsoData data, int stationUID)
+	private String writeStation(BufferedOutputStream os, Station station)
 			throws IOException {
-		StringBuilder signatureData = new StringBuilder();
+		writeTag(os, "REC_TYPE", "tSTATION");
+		writeTag(os, "STATION_UID", "" + station.uid);
+		writeTag(os, "CERT_UID","1");
+		StringBuilder sb=new StringBuilder();
+		//Preserve alphabetic order from this point forward!
+		sb.append(writeTag(os, "CALL", mCallSign));
+		sb.append(writeTag(os, "CONT", station.continent)); 
+		sb.append(writeTag(os, "CQZ", station.cqz)); 
+		sb.append(writeTag(os, "DXCC", "" + station.dxcc)); 
+		sb.append(writeTag(os, "EMAIL_ADDRESS", station.emailAddress));
+		sb.append(writeTag(os, "GRIDSQUARE", station.grid));
+		sb.append(writeTag(os, "IOTA", station.iota)); 
+		sb.append(writeTag(os, "ITUZ", station.ituz)); 
+		sb.append(writeTag(os, "POSTAL_CODE", station.zipCode)); 
+		if (station.satName != null) {
+			sb.append(writeTag(os, "SAT_NAME", station.satName));
+			sb.append(writeTag(os, "SAT_MODE", station.mode));
+		}
+		sb.append(writeTag(os, "US_COUNTY", station.usCounty));
+		sb.append(writeTag(os, "US_STATE", station.usState));
+		os.write("<EOR>\n".getBytes());
+		return sb.toString();
+	}
+
+	private void writeQso(BufferedOutputStream os, QsoData data, Station station)
+			throws IOException {
+		StringBuilder signatureData = new StringBuilder(station.baseSig);
 
 		// Note, these must remain in alphabetic order, except REC_TYPE and LoTW_SIGN
 		writeTag(os, "REC_TYPE", "tCONTACT");
+		writeTag(os, "STATION_UID",""+station.uid);
 		signatureData.append(writeTag(os, "CALL", data.call));
 		signatureData.append(writeTag(os, "BAND", HamBand.getText(HamBand.findBand(data.freq))));
 		signatureData.append(writeTag(os, "FREQ", "" + data.freq));
 		signatureData.append(writeTag(os, "MODE", data.mode));
 		signatureData.append(writeTag(os, "QSO_DATE", mDateFormat.format(data.dateTime)));
 		signatureData.append(writeTag(os, "QSO_TIME", mTimeFormat.format(data.dateTime)));
-		signatureData.append(writeTag(os, "Station_GUID", "" + stationUID));
 		writeTag(os, "LoTW_Sign", signQso(signatureData.toString()));
+		writeTag(os, "SIGNDATA",signatureData.toString());
 		os.write("<EOR>\n".getBytes());
 	}
 
