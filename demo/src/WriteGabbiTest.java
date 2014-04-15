@@ -38,7 +38,7 @@ public class WriteGabbiTest extends WriteGabbi {
 			data.call="KD7UIY";
 			data.freq=146.580;
 			data.mode="SSB";
-			data.dateTime=new Date();
+			data.qso_dateTime=new Date();
 			return new QsoData[]{data};
 		} else {
 			return null;
@@ -54,7 +54,6 @@ public class WriteGabbiTest extends WriteGabbi {
 	//First argument is the location of your .p12 file
 	public static void main(String[] args) {
 		final String alias="trustedqsl user certificate";
-		System.out.println("Testing");
 		KeyStore keystore=WriteGabbi.getKeystore(args[0],"");
 		try {
 			WriteGabbiTest writeGabbi= new WriteGabbiTest(keystore,new char[]{},alias);
@@ -63,7 +62,6 @@ public class WriteGabbiTest extends WriteGabbi {
 			output.close();
 		} catch (UnrecoverableKeyException | KeyStoreException
 				| NoSuchAlgorithmException | IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}

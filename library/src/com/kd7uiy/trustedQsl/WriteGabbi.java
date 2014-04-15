@@ -46,6 +46,7 @@ import java.util.TimeZone;
 
 public abstract class WriteGabbi {
 	private static final boolean PRETTY_MODE = true;
+	private static final String DEFAULT_ALIAS = "trustedqsl user certificate";
 	private String mMessageDigestFormat = "MD5withRSA";
 	private String mCallSign;
 	private SimpleDateFormat mTimeFormat;
@@ -101,6 +102,10 @@ public abstract class WriteGabbi {
 		mCertificate = keystore.getCertificate(alias);
 		mKey = (PrivateKey) keystore.getKey(alias,password);
 		setUpSimpleDateTime();
+	}
+	
+	public WriteGabbi(KeyStore keystore, char[] password) throws UnrecoverableKeyException, KeyStoreException, NoSuchAlgorithmException {
+		this(keystore,password,DEFAULT_ALIAS);
 	}
 
 	private void setUpSimpleDateTime() {
@@ -175,15 +180,15 @@ public abstract class WriteGabbi {
 		sb.append(writeTag(os, "CALL", mCallSign));
 		sb.append(writeTag(os,"CL_CITY",""+station.clCity));
 		sb.append(writeTag(os, "CONT", station.continent));
-		sb.append(writeTag(os, "CQZ", station.cqz));
+		sb.append(writeTag(os, "CQZ", ""+station.cqz));
 		sb.append(writeTag(os,"CZ_DISTRICT",station.czDistrict));
 		sb.append(writeTag(os,"DIG",""+station.dig));
 		sb.append(writeTag(os,"DOK",station.dok));
 		sb.append(writeTag(os, "DXCC", "" + station.dxcc));
 		sb.append(writeTag(os, "EMAIL_ADDRESS", station.emailAddress));
-		sb.append(writeTag(os, "GRIDSQUARE", station.gridsquare));
+		sb.append(writeTag(os, "GRIDSQUARE", station.gridSquare));
 		sb.append(writeTag(os, "IOTA", station.iota));
-		sb.append(writeTag(os, "ITUZ", station.ituz));
+		sb.append(writeTag(os, "ITUZ", ""+station.ituz));
 		sb.append(writeTag(os,"JAG",""+station.jag));
 		if (station.clCity>0) {
 		sb.append(writeTag(os,"JP_CITY",String.format("%04i",station.clCity)));
@@ -202,20 +207,20 @@ public abstract class WriteGabbi {
 			sb.append(writeTag(os, "SAT_NAME", station.satName));
 			sb.append(writeTag(os, "SAT_MODE", station.satMode));
 		}
-		sb.append(writeTag(os,"SDOK",""+station.sdok));
+		sb.append(writeTag(os,"SDOK",station.sdok));
 		sb.append(writeTag(os,"CL_CITY",""+station.clCity));
 		sb.append(writeTag(os, "SK_DISTRICT", station.skDistrict));
-		sb.append(writeTag(os,"SUB_GOV1",""+station.subGov1));
-		sb.append(writeTag(os,"SUB_GOV2",""+station.subGov2));
-		sb.append(writeTag(os,"SUB_GOV3",""+station.subGov3));
+		sb.append(writeTag(os,"SUB_GOV1",station.subGov1));
+		sb.append(writeTag(os,"SUB_GOV2",station.subGov2));
+		sb.append(writeTag(os,"SUB_GOV3",station.subGov3));
 		sb.append(writeTag(os,"STATION_TYPE",station.stationType));
 		if (station.txPwr>0) {
 			sb.append(writeTag(os,"TX_PWR",String.format("%.3f",station.txPwr)));
 		}
-		sb.append(writeTag(os,"URL",""+station.url));
-		sb.append(writeTag(os,"US_COUNTY",""+station.usCounty));
+		sb.append(writeTag(os,"URL",station.url));
+		sb.append(writeTag(os,"US_COUNTY",station.usCounty));
 		sb.append(writeTag(os, "US_STATE", station.usState));
-		sb.append(writeTag(os,"WAE",""+station.wae));
+		sb.append(writeTag(os,"WAE",station.wae));
 		eor(os);
 		return sb.toString();
 	}
@@ -234,15 +239,19 @@ public abstract class WriteGabbi {
 		// LoTW_SIGN
 		writeTag(os, "REC_TYPE", "tCONTACT");
 		writeTag(os, "STATION_UID", "" + station.uid);
-		signatureData.append(writeTag(os, "CALL", data.call));
 		signatureData.append(writeTag(os, "BAND",
-				HamBand.getText(HamBand.findBand(data.freq * 1000))));
+				HamBand.getText(data.band)));
+		signatureData.append(writeTag(os, "BAND_RX",
+				HamBand.getText(data.bandRx)));
+		signatureData.append(writeTag(os, "CALL", data.call));
 		signatureData.append(writeTag(os, "FREQ", "" + (data.freq * 1000)));
+		signatureData.append(writeTag(os, "FREQ_RX", "" + (data.freqRx * 1000)));
 		signatureData.append(writeTag(os, "MODE", data.mode));
+		signatureData.append(writeTag(os, "QSL",data.qsl));
 		signatureData.append(writeTag(os, "QSO_DATE",
-				mDateFormat.format(data.dateTime)));
+				mDateFormat.format(data.qso_dateTime)));
 		signatureData.append(writeTag(os, "QSO_TIME",
-				mTimeFormat.format(data.dateTime)));
+				mTimeFormat.format(data.qso_dateTime)));
 		signatureData.append(writeTag(os, "REMARKS", data.remarks));
 		signatureData.append(writeTag(os, "RST_SENT",data.rstSent));
 		writeTag(os, "LoTW_Sign", signQso(signatureData.toString()));
@@ -279,7 +288,7 @@ public abstract class WriteGabbi {
 
 	private static String writeTag(BufferedOutputStream os, String name,
 			String data) throws IOException {
-		if (data != null && data.equals("0") && !data.equals("")) {
+		if (data != null && !data.equals("0") && !data.equals("")) {
 			int length = data.length();
 			if (length > 0) {
 				String output = String.format(Locale.US, "<%s:%d>%s", name,
@@ -288,8 +297,8 @@ public abstract class WriteGabbi {
 				if (PRETTY_MODE) {
 					os.write("\n".getBytes());
 				}
+				return data;
 			}
-			return data;
 		}
 		return "";
 	}

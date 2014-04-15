@@ -31,10 +31,14 @@ import com.kd7uiy.trustedQsl.HamBand.Band;
 
 public class QsoData implements Serializable{
 	private static final long serialVersionUID = 6225054585566017811L;
+	public Band band;	//TX Band
+	public Band bandRx;	//RX Band
 	public String call;		//Callsign
-	public double freq;		//In MHz
-	public Date dateTime;	//Time of QSO
+	public double freq;		//TX freq, In MHz
+	public double freqRx;	//RX freq, in MHz.
 	public String mode;		//Mode
+	public String qsl;		//PSE to request confirmation, THX indicates no response necessary
+	public Date qso_dateTime;	//Time of QSO
 	public String remarks; 	//Comments included
 	public String rstSent;	//RST
 	
@@ -45,6 +49,17 @@ public class QsoData implements Serializable{
 	@Override
 	public String toString(){
 		StringBuilder sb=new StringBuilder();
+		sb.append("(band:"+HamBand.getText(band));
+		sb.append(",bandRx:"+HamBand.getText(bandRx));
+		sb.append(",call:"+call);
+		sb.append(",freq:"+freq);
+		sb.append(",freqRx:"+freqRx);
+		sb.append(",mode:"+mode);
+		sb.append(",qsl:"+qsl);
+		sb.append(",qso_dateTime:"+qso_dateTime);
+		sb.append(",remarks:"+remarks);
+		sb.append(",rstSent:"+rstSent);
+		sb.append(")");
 		return sb.toString();
 	}
 }

@@ -34,15 +34,15 @@ public class Station implements Serializable {
 	public String call;			//Call sign used by the recording station
 	public int clCity;			//Chilean Municipality ("Comuna"). 5 or 6 digit code for municipality
 	public String continent;	//Continent
-	public String cqz;			//CQ Zone
+	public int cqz;			//CQ Zone
 	public String czDistrict;	//Czech District ("okres"), 3 letter abbreviation
 	public int dig;				//Diplom Interessen Gruppe
 	public String dok;			//DARC District Location Code
 	public int dxcc;			//DXCC number, as ARRL records
 	public String emailAddress;	//Email Address
-	public String gridsquare;	//Maidenhead Grid Square (4 or 6 character)
+	public String gridSquare;	//Maidenhead Grid Square (4 or 6 character)
 	public String iota;			//Island On The Air number
-	public String ituz;			//ITU Zone
+	public int ituz;			//ITU Zone
 	public int jag;				//Japan Award Hunter's Group member number
 	public int jpCity;			//Japanese City ("shi").
 	public int jpGun;			//Japanese gun (County)
@@ -81,7 +81,7 @@ public class Station implements Serializable {
 		sb.append(",dok:"+dok);
 		sb.append(",dxcc:"+dxcc);
 		sb.append(",emailAddress:"+emailAddress);
-		sb.append(",gridsquare:"+gridsquare);
+		sb.append(",gridsquare:"+gridSquare);
 		sb.append(",iota:"+iota);
 		sb.append(",ituz:"+ituz);
 		sb.append(",jag:"+jag);
