@@ -44,6 +44,8 @@ import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
 
+import com.kd7uiy.trustedQsl.HamBand.Band;
+
 public abstract class WriteGabbi {
 	private static final boolean PRETTY_MODE = true;
 	private static final String DEFAULT_ALIAS = "trustedqsl user certificate";
@@ -54,6 +56,8 @@ public abstract class WriteGabbi {
 	private Certificate mCertificate;
 	private static SimpleDateFormat mIso8601Format;
 	private static SimpleDateFormat mDateFormat;
+	
+	protected boolean mValidate=true;		//If false, won't validate any Qso/Station data
 
 	protected abstract String getApplicationName(); // Returns the application
 													// name
@@ -127,14 +131,20 @@ public abstract class WriteGabbi {
 		int stationUID = 1;
 		Station[] stations = getStations();
 		for (Station station : stations) {
+			if (mValidate && !isValid(station)) {
+				throw new IllegalArgumentException("Invalid Station "+station);
+			}
 			station.uid = stationUID;
 			station.baseSig = writeStation(out, station);
 			stationUID++;
 		}
 		int complete = 0;
 		for (Station station : stations) {
-			for (QsoData data : getQsoData(station)) {
-				writeQso(out, data, station);
+			for (QsoData qso : getQsoData(station)) {
+				if (mValidate && !isValid(qso)) {
+					throw new IllegalArgumentException("Invalid Qso "+qso);
+				}
+				writeQso(out, qso, station);
 				publishProgress(++complete);
 			}
 		}
@@ -184,7 +194,9 @@ public abstract class WriteGabbi {
 		sb.append(writeTag(os,"CZ_DISTRICT",station.czDistrict));
 		sb.append(writeTag(os,"DIG",""+station.dig));
 		sb.append(writeTag(os,"DOK",station.dok));
-		sb.append(writeTag(os, "DXCC", "" + station.dxcc));
+		//Despite no exception mention, dxcc not in signature lines
+		writeTag(os, "DXCC", "" + station.dxcc);
+//		sb.append(writeTag(os, "DXCC", "" + station.dxcc));
 		sb.append(writeTag(os, "EMAIL_ADDRESS", station.emailAddress));
 		sb.append(writeTag(os, "GRIDSQUARE", station.gridSquare));
 		sb.append(writeTag(os, "IOTA", station.iota));
@@ -244,8 +256,8 @@ public abstract class WriteGabbi {
 		signatureData.append(writeTag(os, "BAND_RX",
 				HamBand.getText(data.bandRx)));
 		signatureData.append(writeTag(os, "CALL", data.call));
-		signatureData.append(writeTag(os, "FREQ", "" + (data.freq * 1000)));
-		signatureData.append(writeTag(os, "FREQ_RX", "" + (data.freqRx * 1000)));
+		signatureData.append(writeTag(os, "FREQ", "" + (data.freq )));
+		signatureData.append(writeTag(os, "FREQ_RX", "" + (data.freqRx )));
 		signatureData.append(writeTag(os, "MODE", data.mode));
 		signatureData.append(writeTag(os, "QSL",data.qsl));
 		signatureData.append(writeTag(os, "QSO_DATE",
@@ -260,14 +272,19 @@ public abstract class WriteGabbi {
 	}
 
 	// Verifies that the station data meets the desired file format
-	public boolean verifyStation(Station station) {
+	public boolean isValid(Station station) {
+		if (station.dxcc==0) {
+			return false;
+		}
 		// TODO Add implementation
 		return true;
 	}
 
 	// Verifies that Qso data is of an acceptable format
-	public boolean verifyQso(QsoData station) {
-		// TODO Perform verification
+	public boolean isValid(QsoData qso) {
+		if (qso.band==Band.UNKNOWN || qso.call==null || qso.mode==null || qso.qso_dateTime==null) {
+			return false;
+		}
 		return true;
 	}
 
@@ -298,6 +315,7 @@ public abstract class WriteGabbi {
 					os.write("\n".getBytes());
 				}
 				return data;
+//				return data.toUpperCase(Locale.US);
 			}
 		}
 		return "";
