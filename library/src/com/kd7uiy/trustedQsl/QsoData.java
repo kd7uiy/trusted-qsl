@@ -29,10 +29,10 @@ import java.util.Date;
 
 public class QsoData implements Serializable{
 	private static final long serialVersionUID = 6225054585566017811L;
-	public String call;
-	public double freq;
-	public Date dateTime;
-	public String mode;
+	public String call;		//Callsign
+	public double freq;		//In MHz
+	public Date dateTime;	//Time of QSO
+	public String mode;		//Mode
 
 	@Override
 	public String toString(){
