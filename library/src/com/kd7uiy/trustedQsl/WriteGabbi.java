@@ -35,6 +35,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.Signature;
 import java.security.SignatureException;
+import java.security.UnrecoverableKeyException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
@@ -44,9 +45,8 @@ import java.util.Locale;
 import java.util.TimeZone;
 
 public abstract class WriteGabbi {
-
-	private static final String MESSAGE_DIGEST_FORMAT = "MD5withRSA";
 	private static final boolean PRETTY_MODE = true;
+	private String mMessageDigestFormat = "MD5withRSA";
 	private String mCallSign;
 	private SimpleDateFormat mTimeFormat;
 	private PrivateKey mKey;
@@ -97,9 +97,9 @@ public abstract class WriteGabbi {
 		return p12;
 	}
 
-	public WriteGabbi(PrivateKey key, Certificate certificate) {
-		mCertificate = certificate;
-		mKey = key;
+	public WriteGabbi(KeyStore keystore, char[] password, String alias) throws KeyStoreException, UnrecoverableKeyException, NoSuchAlgorithmException {
+		mCertificate = keystore.getCertificate(alias);
+		mKey = (PrivateKey) keystore.getKey(alias,password);
 		setUpSimpleDateTime();
 	}
 
@@ -146,7 +146,7 @@ public abstract class WriteGabbi {
 		writeTag(os, "CATEGORY", "tQSL");
 		writeTag(os, "GabbI_CREATED_BY", getApplicationName());
 		writeTag(os, "GAbbI_CREATED_ON", mIso8601Format.format(new Date()));
-		writeTag(os, "GabbI_MESSAGE_DIGEST", MESSAGE_DIGEST_FORMAT);
+		writeTag(os, "GabbI_MESSAGE_DIGEST", mMessageDigestFormat);
 		writeTag(os, "GAbbI_SENDER", mCallSign); // This is the user's call sign
 		writeTag(os, "GAbbI_SIGN_ALGORITHM", mKey.getAlgorithm()); // This
 																	// should be
@@ -173,20 +173,49 @@ public abstract class WriteGabbi {
 		StringBuilder sb = new StringBuilder();
 		// Preserve alphabetic order from this point forward!
 		sb.append(writeTag(os, "CALL", mCallSign));
+		sb.append(writeTag(os,"CL_CITY",""+station.clCity));
 		sb.append(writeTag(os, "CONT", station.continent));
 		sb.append(writeTag(os, "CQZ", station.cqz));
+		sb.append(writeTag(os,"CZ_DISTRICT",station.czDistrict));
+		sb.append(writeTag(os,"DIG",""+station.dig));
+		sb.append(writeTag(os,"DOK",station.dok));
 		sb.append(writeTag(os, "DXCC", "" + station.dxcc));
 		sb.append(writeTag(os, "EMAIL_ADDRESS", station.emailAddress));
 		sb.append(writeTag(os, "GRIDSQUARE", station.gridsquare));
 		sb.append(writeTag(os, "IOTA", station.iota));
 		sb.append(writeTag(os, "ITUZ", station.ituz));
+		sb.append(writeTag(os,"JAG",""+station.jag));
+		if (station.clCity>0) {
+		sb.append(writeTag(os,"JP_CITY",String.format("%04i",station.clCity)));
+		}
+		if (station.jpGun>0) {
+			sb.append(writeTag(os,"JP_GUN",String.format("%05i",station.jpGun)));
+		}
+		sb.append(writeTag(os,"LOCATION",station.location));
+		sb.append(writeTag(os,"MAILING_ADDRESS",station.mailingAddr));
+		sb.append(writeTag(os,"NZ_COUNTY",station.nzCounty));
+		sb.append(writeTag(os,"OPERATOR",station.operator));
 		sb.append(writeTag(os, "POSTAL_CODE", station.postalCode));
+		sb.append(writeTag(os,"REPEATER",station.repeater));
+		sb.append(writeTag(os,"RIG",station.rig));
 		if (station.satName != null) {
 			sb.append(writeTag(os, "SAT_NAME", station.satName));
 			sb.append(writeTag(os, "SAT_MODE", station.satMode));
 		}
-		sb.append(writeTag(os, "US_COUNTY", station.usCounty));
+		sb.append(writeTag(os,"SDOK",""+station.sdok));
+		sb.append(writeTag(os,"CL_CITY",""+station.clCity));
+		sb.append(writeTag(os, "SK_DISTRICT", station.skDistrict));
+		sb.append(writeTag(os,"SUB_GOV1",""+station.subGov1));
+		sb.append(writeTag(os,"SUB_GOV2",""+station.subGov2));
+		sb.append(writeTag(os,"SUB_GOV3",""+station.subGov3));
+		sb.append(writeTag(os,"STATION_TYPE",station.stationType));
+		if (station.txPwr>0) {
+			sb.append(writeTag(os,"TX_PWR",String.format("%.3f",station.txPwr)));
+		}
+		sb.append(writeTag(os,"URL",""+station.url));
+		sb.append(writeTag(os,"US_COUNTY",""+station.usCounty));
 		sb.append(writeTag(os, "US_STATE", station.usState));
+		sb.append(writeTag(os,"WAE",""+station.wae));
 		eor(os);
 		return sb.toString();
 	}
@@ -237,7 +266,7 @@ public abstract class WriteGabbi {
 	private String signQso(String data) {
 		String output = data;
 		try {
-			Signature signature = Signature.getInstance(MESSAGE_DIGEST_FORMAT);
+			Signature signature = Signature.getInstance(mMessageDigestFormat);
 			signature.initSign(mKey);
 			signature.update(data.getBytes());
 			output = new String(Base64Coder.encode(signature.sign()));

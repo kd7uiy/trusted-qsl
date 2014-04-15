@@ -36,6 +36,8 @@ public class Station implements Serializable {
 	public String continent;	//Continent
 	public String cqz;			//CQ Zone
 	public String czDistrict;	//Czech District ("okres"), 3 letter abbreviation
+	public int dig;				//Diplom Interessen Gruppe
+	public String dok;			//DARC District Location Code
 	public int dxcc;			//DXCC number, as ARRL records
 	public String emailAddress;	//Email Address
 	public String gridsquare;	//Maidenhead Grid Square (4 or 6 character)
@@ -43,6 +45,7 @@ public class Station implements Serializable {
 	public String ituz;			//ITU Zone
 	public int jag;				//Japan Award Hunter's Group member number
 	public int jpCity;			//Japanese City ("shi").
+	public int jpGun;			//Japanese gun (County)
 	public String location;		//User provided geographical location
 	public String mailingAddr;	//Mailing Address, should be internationalized
 	public String nzCounty;		//New Zealand county, FIPS Pub. 10-4. 
@@ -62,6 +65,7 @@ public class Station implements Serializable {
 	public String usCounty;		//US County
 	public String usState;		//US State
 	public String wae;			//Worked All Europe entity
+	public String url;			//URL to provide more info on station
 	public int uid;				//UID, the id of the station for the file. Don't set this manually!
 	public String baseSig;		//Data to sign for the station.
 
@@ -69,18 +73,40 @@ public class Station implements Serializable {
 	public String toString() {
 		StringBuilder sb=new StringBuilder();
 		sb.append("(call:"+call);
+		sb.append("clCity:"+clCity);
 		sb.append(",Continent:"+continent);
 		sb.append(",cqz:"+cqz);
+		sb.append(",czDistrict:"+czDistrict);
+		sb.append(",dig:"+dig);
+		sb.append(",dok:"+dok);
 		sb.append(",dxcc:"+dxcc);
 		sb.append(",emailAddress:"+emailAddress);
 		sb.append(",gridsquare:"+gridsquare);
 		sb.append(",iota:"+iota);
 		sb.append(",ituz:"+ituz);
+		sb.append(",jag:"+jag);
+		sb.append(",jpCity:"+jpCity);
+		sb.append(",jpGun:"+jpGun);
+		sb.append(",location:"+location);
+		sb.append(",mailingAddr:"+mailingAddr);
+		sb.append(",nzCounty:"+nzCounty);
+		sb.append(",operator:"+operator);
 		sb.append(",postalCode:"+postalCode);
+		sb.append(",repeater"+repeater);
+		sb.append(",rig:"+rig);
 		sb.append(",satName:"+satName);
 		sb.append(",satMode:"+satMode);
+		sb.append(",sdok:"+sdok);
+		sb.append(",skDistrict:"+skDistrict);
+		sb.append(",subGov1:"+subGov1);
+		sb.append(",subGov2:"+subGov2);
+		sb.append(",subGov3:"+subGov3);
+		sb.append(",stationType:"+stationType);
+		sb.append(String.format(",txPwr:%.3f",txPwr));
+		sb.append(",url:"+url);
 		sb.append(",usCounty:"+usCounty);
 		sb.append(",usState:"+usState);
+		sb.append(",wae:"+wae);
 		sb.append(",uid:"+uid);
 		sb.append(",baseSig:"+baseSig);
 		sb.append(")");

@@ -15,8 +15,8 @@ import com.kd7uiy.trustedQsl.WriteGabbi;
 
 public class WriteGabbiTest extends WriteGabbi {
 
-	public WriteGabbiTest(PrivateKey key, Certificate certificate) {
-		super(key, certificate);
+	public WriteGabbiTest(KeyStore keystore, char[] password, String alias) throws UnrecoverableKeyException, KeyStoreException, NoSuchAlgorithmException {
+		super(keystore,password,alias);
 	}
 
 	@Override
@@ -57,7 +57,7 @@ public class WriteGabbiTest extends WriteGabbi {
 		System.out.println("Testing");
 		KeyStore keystore=WriteGabbi.getKeystore(args[0],"");
 		try {
-			WriteGabbiTest writeGabbi= new WriteGabbiTest((PrivateKey) keystore.getKey(alias,new char[]{}),keystore.getCertificate(alias));
+			WriteGabbiTest writeGabbi= new WriteGabbiTest(keystore,new char[]{},alias);
 			FileOutputStream output= new FileOutputStream("gabbi_output.txt");
 			writeGabbi.write(output);
 			output.close();
