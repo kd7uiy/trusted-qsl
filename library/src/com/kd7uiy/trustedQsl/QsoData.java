@@ -27,12 +27,20 @@ THE SOFTWARE.
 import java.io.Serializable;
 import java.util.Date;
 
+import com.kd7uiy.trustedQsl.HamBand.Band;
+
 public class QsoData implements Serializable{
 	private static final long serialVersionUID = 6225054585566017811L;
 	public String call;		//Callsign
 	public double freq;		//In MHz
 	public Date dateTime;	//Time of QSO
 	public String mode;		//Mode
+	public String remarks; 	//Comments included
+	public String rstSent;	//RST
+	
+	public void setBand(Band band) {
+		freq=HamBand.findFreqInBand(band);
+	}
 
 	@Override
 	public String toString(){

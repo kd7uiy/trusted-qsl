@@ -26,23 +26,44 @@ THE SOFTWARE.
 
 import java.io.Serializable;
 
+/* All of the data on a station. Note that none of these are required For more information, see
+ * http://trustedqsl.cvs.sourceforge.net/viewvc/trustedqsl/tqsl/html/trustedqsl/GAbbI/gabbi.htm?revision=HEAD
+ */
 public class Station implements Serializable {
 	private static final long serialVersionUID = 7168577228088510232L;
-	public String call;
-	public String continent;
-	public String cqz;
-	public int dxcc;
-	public String emailAddress;
-	public String grid;
-	public String iota;
-	public String ituz;
-	public String zipCode;
-	public String satName;
-	public String mode;
-	public String usCounty;
-	public String usState;
-	public int uid;
-	public String baseSig;
+	public String call;			//Call sign used by the recording station
+	public int clCity;			//Chilean Municipality ("Comuna"). 5 or 6 digit code for municipality
+	public String continent;	//Continent
+	public String cqz;			//CQ Zone
+	public String czDistrict;	//Czech District ("okres"), 3 letter abbreviation
+	public int dxcc;			//DXCC number, as ARRL records
+	public String emailAddress;	//Email Address
+	public String gridsquare;	//Maidenhead Grid Square (4 or 6 character)
+	public String iota;			//Island On The Air number
+	public String ituz;			//ITU Zone
+	public int jag;				//Japan Award Hunter's Group member number
+	public int jpCity;			//Japanese City ("shi").
+	public String location;		//User provided geographical location
+	public String mailingAddr;	//Mailing Address, should be internationalized
+	public String nzCounty;		//New Zealand county, FIPS Pub. 10-4. 
+	public String operator;		//Operator, if not "call"
+	public String postalCode;	//Postal Code
+	public String repeater;		//Terrestrial repeater callsign
+	public String rig;			//Description of station
+	public String satName;		//Satellite Name 
+	public String satMode;		//Satellite Mode
+	public String sdok;			//DARC Sonder- DOK, string up to 8 characters
+	public String skDistrict;	//Slovak District ("okres"). 3 letter abbreviation
+	public String subGov1;		//State/Providence level
+	public String subGov2;		//Subordinate to subGov1, Count, Gun, Parish, District, etc.
+	public String subGov3;		//Subordinate to subGov2.
+	public String stationType;	//Possible station types
+	public float txPwr;			//Output in W. Will only be included to the mW accuracy
+	public String usCounty;		//US County
+	public String usState;		//US State
+	public String wae;			//Worked All Europe entity
+	public int uid;				//UID, the id of the station for the file. Don't set this manually!
+	public String baseSig;		//Data to sign for the station.
 
 	@Override
 	public String toString() {
@@ -52,12 +73,12 @@ public class Station implements Serializable {
 		sb.append(",cqz:"+cqz);
 		sb.append(",dxcc:"+dxcc);
 		sb.append(",emailAddress:"+emailAddress);
-		sb.append(",grid:"+grid);
+		sb.append(",gridsquare:"+gridsquare);
 		sb.append(",iota:"+iota);
 		sb.append(",ituz:"+ituz);
-		sb.append(",zipCode:"+zipCode);
+		sb.append(",postalCode:"+postalCode);
 		sb.append(",satName:"+satName);
-		sb.append(",mode:"+mode);
+		sb.append(",satMode:"+satMode);
 		sb.append(",usCounty:"+usCounty);
 		sb.append(",usState:"+usState);
 		sb.append(",uid:"+uid);

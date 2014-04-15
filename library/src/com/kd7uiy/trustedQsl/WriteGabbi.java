@@ -32,17 +32,14 @@ import java.security.InvalidKeyException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
-import java.security.Principal;
 import java.security.PrivateKey;
 import java.security.Signature;
 import java.security.SignatureException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.Enumeration;
 import java.util.Locale;
 import java.util.TimeZone;
 
@@ -180,13 +177,13 @@ public abstract class WriteGabbi {
 		sb.append(writeTag(os, "CQZ", station.cqz));
 		sb.append(writeTag(os, "DXCC", "" + station.dxcc));
 		sb.append(writeTag(os, "EMAIL_ADDRESS", station.emailAddress));
-		sb.append(writeTag(os, "GRIDSQUARE", station.grid));
+		sb.append(writeTag(os, "GRIDSQUARE", station.gridsquare));
 		sb.append(writeTag(os, "IOTA", station.iota));
 		sb.append(writeTag(os, "ITUZ", station.ituz));
-		sb.append(writeTag(os, "POSTAL_CODE", station.zipCode));
+		sb.append(writeTag(os, "POSTAL_CODE", station.postalCode));
 		if (station.satName != null) {
 			sb.append(writeTag(os, "SAT_NAME", station.satName));
-			sb.append(writeTag(os, "SAT_MODE", station.mode));
+			sb.append(writeTag(os, "SAT_MODE", station.satMode));
 		}
 		sb.append(writeTag(os, "US_COUNTY", station.usCounty));
 		sb.append(writeTag(os, "US_STATE", station.usState));
@@ -217,6 +214,8 @@ public abstract class WriteGabbi {
 				mDateFormat.format(data.dateTime)));
 		signatureData.append(writeTag(os, "QSO_TIME",
 				mTimeFormat.format(data.dateTime)));
+		signatureData.append(writeTag(os, "REMARKS", data.remarks));
+		signatureData.append(writeTag(os, "RST_SENT",data.rstSent));
 		writeTag(os, "LoTW_Sign", signQso(signatureData.toString()));
 		writeTag(os, "SIGNDATA", signatureData.toString());
 		eor(os);
@@ -251,7 +250,7 @@ public abstract class WriteGabbi {
 
 	private static String writeTag(BufferedOutputStream os, String name,
 			String data) throws IOException {
-		if (data != null) {
+		if (data != null && data.equals("0") && !data.equals("")) {
 			int length = data.length();
 			if (length > 0) {
 				String output = String.format(Locale.US, "<%s:%d>%s", name,
