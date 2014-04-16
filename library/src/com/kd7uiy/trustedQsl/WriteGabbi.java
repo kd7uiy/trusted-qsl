@@ -39,8 +39,10 @@ import java.security.UnrecoverableKeyException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Enumeration;
 import java.util.Locale;
 import java.util.TimeZone;
 
@@ -48,12 +50,11 @@ import com.kd7uiy.trustedQsl.HamBand.Band;
 
 public abstract class WriteGabbi {
 	private static final boolean PRETTY_MODE = true;
-	private static final String DEFAULT_ALIAS = "trustedqsl user certificate";
 	private String mMessageDigestFormat = "MD5withRSA";
 	private String mCallSign;
 	private SimpleDateFormat mTimeFormat;
 	private PrivateKey mKey;
-	private Certificate mCertificate;
+	private X509Certificate mCertificate;
 	private static SimpleDateFormat mIso8601Format;
 	private static SimpleDateFormat mDateFormat;
 	
@@ -73,7 +74,7 @@ public abstract class WriteGabbi {
 																// publishes the
 	// progress of results.
 
-	public static KeyStore getKeystore(String filename, String password) {
+	public static KeyStore getKeyStore(String filename, String password) {
 		KeyStore p12 = null;
 		try {
 			p12 = KeyStore.getInstance("pkcs12");
@@ -103,13 +104,20 @@ public abstract class WriteGabbi {
 	}
 
 	public WriteGabbi(KeyStore keystore, char[] password, String alias) throws KeyStoreException, UnrecoverableKeyException, NoSuchAlgorithmException {
-		mCertificate = keystore.getCertificate(alias);
+		init(keystore, password, alias);
+	}
+	private void init(KeyStore keystore, char[] password, String alias)
+			throws KeyStoreException, NoSuchAlgorithmException,
+			UnrecoverableKeyException {
+		mCertificate = (X509Certificate) keystore.getCertificate(alias);
 		mKey = (PrivateKey) keystore.getKey(alias,password);
+		mMessageDigestFormat= mCertificate.getSigAlgName();
 		setUpSimpleDateTime();
 	}
 	
 	public WriteGabbi(KeyStore keystore, char[] password) throws UnrecoverableKeyException, KeyStoreException, NoSuchAlgorithmException {
-		this(keystore,password,DEFAULT_ALIAS);
+		Enumeration<String> e = keystore.aliases();
+		init(keystore,password,e.nextElement());
 	}
 
 	private void setUpSimpleDateTime() {
@@ -187,52 +195,47 @@ public abstract class WriteGabbi {
 		writeTag(os, "CERT_UID", "1");
 		StringBuilder sb = new StringBuilder();
 		// Preserve alphabetic order from this point forward!
-		sb.append(writeTag(os, "CALL", mCallSign));
-		sb.append(writeTag(os,"CL_CITY",""+station.clCity));
-		sb.append(writeTag(os, "CONT", station.continent));
+		sb.append(writeTag(os,"CA_PROVIDENCE",station.caProvidence));
+		writeTag(os, "CALL", mCallSign);
+		writeTag(os,"CL_CITY",""+station.clCity);
+		writeTag(os, "CONT", station.continent);
 		sb.append(writeTag(os, "CQZ", ""+station.cqz));
-		sb.append(writeTag(os,"CZ_DISTRICT",station.czDistrict));
-		sb.append(writeTag(os,"DIG",""+station.dig));
-		sb.append(writeTag(os,"DOK",station.dok));
-		//Despite no exception mention, dxcc not in signature lines
+		writeTag(os,"CZ_DISTRICT",station.czDistrict);
+		writeTag(os,"DIG",""+station.dig);
+		writeTag(os,"DOK",station.dok);
 		writeTag(os, "DXCC", "" + station.dxcc);
-//		sb.append(writeTag(os, "DXCC", "" + station.dxcc));
-		sb.append(writeTag(os, "EMAIL_ADDRESS", station.emailAddress));
+		writeTag(os, "EMAIL_ADDRESS", station.emailAddress);
 		sb.append(writeTag(os, "GRIDSQUARE", station.gridSquare));
 		sb.append(writeTag(os, "IOTA", station.iota));
 		sb.append(writeTag(os, "ITUZ", ""+station.ituz));
-		sb.append(writeTag(os,"JAG",""+station.jag));
+		writeTag(os,"JAG",""+station.jag);
 		if (station.clCity>0) {
-		sb.append(writeTag(os,"JP_CITY",String.format("%04i",station.clCity)));
+			writeTag(os,"JP_CITY",String.format("%04i",station.clCity));
 		}
 		if (station.jpGun>0) {
-			sb.append(writeTag(os,"JP_GUN",String.format("%05i",station.jpGun)));
+			writeTag(os,"JP_GUN",String.format("%05i",station.jpGun));
 		}
-		sb.append(writeTag(os,"LOCATION",station.location));
-		sb.append(writeTag(os,"MAILING_ADDRESS",station.mailingAddr));
-		sb.append(writeTag(os,"NZ_COUNTY",station.nzCounty));
-		sb.append(writeTag(os,"OPERATOR",station.operator));
-		sb.append(writeTag(os, "POSTAL_CODE", station.postalCode));
-		sb.append(writeTag(os,"REPEATER",station.repeater));
-		sb.append(writeTag(os,"RIG",station.rig));
-		if (station.satName != null) {
-			sb.append(writeTag(os, "SAT_NAME", station.satName));
-			sb.append(writeTag(os, "SAT_MODE", station.satMode));
-		}
-		sb.append(writeTag(os,"SDOK",station.sdok));
-		sb.append(writeTag(os,"CL_CITY",""+station.clCity));
-		sb.append(writeTag(os, "SK_DISTRICT", station.skDistrict));
-		sb.append(writeTag(os,"SUB_GOV1",station.subGov1));
-		sb.append(writeTag(os,"SUB_GOV2",station.subGov2));
-		sb.append(writeTag(os,"SUB_GOV3",station.subGov3));
-		sb.append(writeTag(os,"STATION_TYPE",station.stationType));
+		writeTag(os,"LOCATION",station.location);
+		writeTag(os,"MAILING_ADDRESS",station.mailingAddr);
+		writeTag(os,"NZ_COUNTY",station.nzCounty);
+		writeTag(os,"OPERATOR",station.operator);
+		writeTag(os, "POSTAL_CODE", station.postalCode);
+		writeTag(os,"REPEATER",station.repeater);
+		writeTag(os,"RIG",station.rig);
+		writeTag(os,"SDOK",station.sdok);
+		writeTag(os,"CL_CITY",""+station.clCity);
+		writeTag(os, "SK_DISTRICT", station.skDistrict);
+		writeTag(os,"SUB_GOV1",station.subGov1);
+		writeTag(os,"SUB_GOV2",station.subGov2);
+		writeTag(os,"SUB_GOV3",station.subGov3);
+		writeTag(os,"STATION_TYPE",station.stationType);
 		if (station.txPwr>0) {
 			sb.append(writeTag(os,"TX_PWR",String.format("%.3f",station.txPwr)));
 		}
-		sb.append(writeTag(os,"URL",station.url));
+		writeTag(os,"URL",station.url);
 		sb.append(writeTag(os,"US_COUNTY",station.usCounty));
 		sb.append(writeTag(os, "US_STATE", station.usState));
-		sb.append(writeTag(os,"WAE",station.wae));
+		writeTag(os,"WAE",station.wae);
 		eor(os);
 		return sb.toString();
 	}
@@ -243,7 +246,7 @@ public abstract class WriteGabbi {
 		}
 	}
 
-	private void writeQso(BufferedOutputStream os, QsoData data, Station station)
+	private void writeQso(BufferedOutputStream os, QsoData qso, Station station)
 			throws IOException {
 		StringBuilder signatureData = new StringBuilder(station.baseSig);
 
@@ -252,20 +255,27 @@ public abstract class WriteGabbi {
 		writeTag(os, "REC_TYPE", "tCONTACT");
 		writeTag(os, "STATION_UID", "" + station.uid);
 		signatureData.append(writeTag(os, "BAND",
-				HamBand.getText(data.band)));
+				HamBand.getText(qso.band)));
 		signatureData.append(writeTag(os, "BAND_RX",
-				HamBand.getText(data.bandRx)));
-		signatureData.append(writeTag(os, "CALL", data.call));
-		signatureData.append(writeTag(os, "FREQ", "" + (data.freq )));
-		signatureData.append(writeTag(os, "FREQ_RX", "" + (data.freqRx )));
-		signatureData.append(writeTag(os, "MODE", data.mode));
-		signatureData.append(writeTag(os, "QSL",data.qsl));
+				HamBand.getText(qso.bandRx)));
+		signatureData.append(writeTag(os, "CALL", qso.call));
+		signatureData.append(writeTag(os, "FREQ", "" + (qso.freq )));
+		signatureData.append(writeTag(os, "FREQ_RX", "" + (qso.freqRx )));
+		if (qso.mode!=null) {
+			signatureData.append(writeTag(os, "MODE", ""+qso.mode));
+		}
+		signatureData.append(writeTag(os,"PROP_MODE",qso.propMode));
+		writeTag(os, "QSL",qso.qsl);
 		signatureData.append(writeTag(os, "QSO_DATE",
-				mDateFormat.format(data.qso_dateTime)));
+				mDateFormat.format(qso.qso_dateTime)));
 		signatureData.append(writeTag(os, "QSO_TIME",
-				mTimeFormat.format(data.qso_dateTime)));
-		signatureData.append(writeTag(os, "REMARKS", data.remarks));
-		signatureData.append(writeTag(os, "RST_SENT",data.rstSent));
+				mTimeFormat.format(qso.qso_dateTime)));
+		if (qso.satName != null) {
+			signatureData.append(writeTag(os, "SAT_NAME", qso.satName));
+			signatureData.append(writeTag(os, "SAT_MODE", qso.satMode));
+		}
+		writeTag(os, "REMARKS", qso.remarks);
+		writeTag(os, "RST_SENT",qso.rstSent);
 		writeTag(os, "LoTW_Sign", signQso(signatureData.toString()));
 		writeTag(os, "SIGNDATA", signatureData.toString());
 		eor(os);
@@ -285,7 +295,14 @@ public abstract class WriteGabbi {
 		if (qso.band==Band.UNKNOWN || qso.call==null || qso.mode==null || qso.qso_dateTime==null) {
 			return false;
 		}
+		if (!isValidCallsign(qso.call)) {
+			return false;
+		}
 		return true;
+	}
+
+	protected static boolean isValidCallsign(String call) {
+		return call.matches("[a-zA-Z0-9/]*");
 	}
 
 	// Signs the individual Qso.
@@ -320,4 +337,11 @@ public abstract class WriteGabbi {
 		}
 		return "";
 	}
+	
+	
+//	//Just for very basic testing, commented out for building the library
+//	public static void main(String args[]) {
+//		System.out.println(isValidCallsign("KD7UIY"));
+//		System.out.println(isValidCallsign("@KD7UIY"));
+//	}
 }

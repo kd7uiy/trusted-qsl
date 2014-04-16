@@ -7,8 +7,11 @@ import java.security.PrivateKey;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.Certificate;
 import java.util.Date;
+import java.util.zip.GZIPOutputStream;
 
+import com.kd7uiy.trustedQsl.HamBand.Band;
 import com.kd7uiy.trustedQsl.QsoData;
+import com.kd7uiy.trustedQsl.QsoData.Mode;
 import com.kd7uiy.trustedQsl.Station;
 import com.kd7uiy.trustedQsl.WriteGabbi;
 
@@ -35,9 +38,10 @@ public class WriteGabbiTest extends WriteGabbi {
 	protected QsoData[] getQsoData(Station station) {
 		if (station.dxcc==291) {
 			QsoData data=new QsoData();
+			data.band=Band.W2M;
 			data.call="KD7UIY";
 			data.freq=146.580;
-			data.mode="SSB";
+			data.mode=Mode.SSB;
 			data.qso_dateTime=new Date();
 			return new QsoData[]{data};
 		} else {
@@ -54,11 +58,11 @@ public class WriteGabbiTest extends WriteGabbi {
 	//First argument is the location of your .p12 file
 	public static void main(String[] args) {
 		final String alias="trustedqsl user certificate";
-		KeyStore keystore=WriteGabbi.getKeystore(args[0],"");
+		KeyStore keystore=WriteGabbi.getKeyStore(args[0],"");
 		try {
 			WriteGabbiTest writeGabbi= new WriteGabbiTest(keystore,new char[]{},alias);
-			FileOutputStream output= new FileOutputStream("gabbi_output.txt");
-			writeGabbi.write(output);
+			FileOutputStream output= new FileOutputStream("gabbi_output.tq8");
+			writeGabbi.write(new GZIPOutputStream(output));
 			output.close();
 		} catch (UnrecoverableKeyException | KeyStoreException
 				| NoSuchAlgorithmException | IOException e) {

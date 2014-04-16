@@ -31,6 +31,7 @@ import java.io.Serializable;
  */
 public class Station implements Serializable {
 	private static final long serialVersionUID = 7168577228088510232L;
+	public String caProvidence;	//Canadian Providence
 	public String call;			//Call sign used by the recording station
 	public int clCity;			//Chilean Municipality ("Comuna"). 5 or 6 digit code for municipality
 	public String continent;	//Continent
@@ -72,7 +73,8 @@ public class Station implements Serializable {
 	@Override
 	public String toString() {
 		StringBuilder sb=new StringBuilder();
-		sb.append("(call:"+call);
+		sb.append("(caProvidence:"+caProvidence);
+		sb.append(",call:"+call);
 		sb.append("clCity:"+clCity);
 		sb.append(",Continent:"+continent);
 		sb.append(",cqz:"+cqz);
