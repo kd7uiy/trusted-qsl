@@ -3,7 +3,7 @@ trusted-qsl
 
 Java library package to manage Trusted Qsl and GAbbI file format, with hooks to upload to Logbook of the World.
 
-== Using the library
+## Using the library
 
 The operator is required to extend the WriteGabbi class. There are 4 abstract functions, plus a constructor required to use this function.
 
@@ -17,7 +17,7 @@ From your extended class, you simply need to provide an OutputStream via the wri
 
 Coming soon is an example of how to use this to write and upload an ARRL signed Logbook of the World file, and upload it to the LotW server.
 
-== Stability
+## Stability
 
 As of right now, the library is in considerable flux, and many change with any build. However, there are some areas which should be constant enough to build off of for future use.
 
