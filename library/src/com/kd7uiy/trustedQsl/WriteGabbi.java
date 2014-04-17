@@ -263,10 +263,10 @@ public abstract class WriteGabbi {
 		signatureData.append(writeTag(os, "BAND_RX",
 				HamBand.getText(qso.bandRx)));
 		signatureData.append(writeTag(os, "CALL", qso.call));
-//		signatureData.append(writeTag(os, "FREQ", "" + (qso.freq )));
-//		signatureData.append(writeTag(os, "FREQ_RX", "" + (qso.freqRx )));
-		signatureData.append(writeTag(os, "FREQ", "145.520"));
-		signatureData.append(writeTag(os, "FREQ_RX", "145.520"));
+		signatureData.append(writeTag(os, "FREQ", "" + (qso.freq )));
+		signatureData.append(writeTag(os, "FREQ_RX", "" + (qso.freqRx )));
+//		signatureData.append(writeTag(os, "FREQ", "145.520"));
+//		signatureData.append(writeTag(os, "FREQ_RX", "145.520"));
 		if (qso.mode!=null) {
 			signatureData.append(writeTag(os, "MODE", ""+qso.mode));
 		}
@@ -318,7 +318,14 @@ public abstract class WriteGabbi {
 			Signature signature = Signature.getInstance(mMessageDigestFormat);
 			signature.initSign(mKey);
 			signature.update(data.getBytes());
-			output = new String(Base64Coder.encode(signature.sign()));
+			byte[] signed=signature.sign();
+			output = new String(Base64Coder.encode(signed));
+			
+//			//Verification code
+//			signature.initVerify(mCertificate);
+//			signature.update(data.getBytes());
+//			System.out.println(signature.verify(signed));
+			
 		} catch (NoSuchAlgorithmException | InvalidKeyException
 				| SignatureException e) {
 			e.printStackTrace();
@@ -335,7 +342,7 @@ public abstract class WriteGabbi {
 				String output = String.format(Locale.US, "<%s:%d>%s", name,
 						length, data);
 				os.write(output.getBytes());
-				if (PRETTY_MODE) {
+				if (PRETTY_MODE && output.charAt(output.length()-1)!='\n') {
 					os.write("\n".getBytes());
 				}
 				return data.toUpperCase(Locale.US);
@@ -344,12 +351,13 @@ public abstract class WriteGabbi {
 		return "";
 	}
 	private static String blockString(String data, int blockSize) {
+		if (data.length()<blockSize) {
+			return data;
+		}
 		StringBuffer sb=new StringBuffer();
-		String start="";
 		for (int i=0;i<data.length();i+=blockSize) {
-			sb.append(start);
 			sb.append(data.substring(i,min(i+blockSize,data.length())));
-			start="\n";
+			sb.append("\n");
 		}
 		data=sb.toString();
 		return data;
