@@ -35,6 +35,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.Signature;
 import java.security.SignatureException;
+import java.security.UnrecoverableEntryException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateEncodingException;
@@ -103,19 +104,22 @@ public abstract class WriteGabbi {
 		return p12;
 	}
 
-	public WriteGabbi(KeyStore keystore, char[] password, String alias) throws KeyStoreException, UnrecoverableKeyException, NoSuchAlgorithmException {
+	public WriteGabbi(KeyStore keystore, char[] password, String alias) throws KeyStoreException, NoSuchAlgorithmException, UnrecoverableEntryException {
 		init(keystore, password, alias);
 	}
 	private void init(KeyStore keystore, char[] password, String alias)
 			throws KeyStoreException, NoSuchAlgorithmException,
-			UnrecoverableKeyException {
+			UnrecoverableEntryException {
 		mCertificate = (X509Certificate) keystore.getCertificate(alias);
-		mKey = (PrivateKey) keystore.getKey(alias,password);
+		KeyStore.ProtectionParameter protParam =
+		        new KeyStore.PasswordProtection(password);
+		KeyStore.PrivateKeyEntry pkEntry = (KeyStore.PrivateKeyEntry) keystore.getEntry(alias, protParam);
+		mKey = (PrivateKey) pkEntry.getPrivateKey();
 		mMessageDigestFormat= mCertificate.getSigAlgName();
 		setUpSimpleDateTime();
 	}
 	
-	public WriteGabbi(KeyStore keystore, char[] password) throws UnrecoverableKeyException, KeyStoreException, NoSuchAlgorithmException {
+	public WriteGabbi(KeyStore keystore, char[] password) throws KeyStoreException, NoSuchAlgorithmException, UnrecoverableEntryException {
 		Enumeration<String> e = keystore.aliases();
 		init(keystore,password,e.nextElement());
 	}
@@ -259,8 +263,10 @@ public abstract class WriteGabbi {
 		signatureData.append(writeTag(os, "BAND_RX",
 				HamBand.getText(qso.bandRx)));
 		signatureData.append(writeTag(os, "CALL", qso.call));
-		signatureData.append(writeTag(os, "FREQ", "" + (qso.freq )));
-		signatureData.append(writeTag(os, "FREQ_RX", "" + (qso.freqRx )));
+//		signatureData.append(writeTag(os, "FREQ", "" + (qso.freq )));
+//		signatureData.append(writeTag(os, "FREQ_RX", "" + (qso.freqRx )));
+		signatureData.append(writeTag(os, "FREQ", "145.520"));
+		signatureData.append(writeTag(os, "FREQ_RX", "145.520"));
 		if (qso.mode!=null) {
 			signatureData.append(writeTag(os, "MODE", ""+qso.mode));
 		}
@@ -276,7 +282,7 @@ public abstract class WriteGabbi {
 		}
 		writeTag(os, "REMARKS", qso.remarks);
 		writeTag(os, "RST_SENT",qso.rstSent);
-		writeTag(os, "LoTW_Sign", signQso(signatureData.toString()));
+		writeTag(os, "SIGN_LOTW_V1.0", signQso(signatureData.toString()));
 		writeTag(os, "SIGNDATA", signatureData.toString());
 		eor(os);
 	}
@@ -286,7 +292,7 @@ public abstract class WriteGabbi {
 		if (station.dxcc==0) {
 			return false;
 		}
-		// TODO Add implementation
+		// TODO Verify each part works as expected.
 		return true;
 	}
 
@@ -323,6 +329,7 @@ public abstract class WriteGabbi {
 	private static String writeTag(BufferedOutputStream os, String name,
 			String data) throws IOException {
 		if (data != null && !data.equals("0") && !data.equals("")) {
+			data = blockString(data,64);
 			int length = data.length();
 			if (length > 0) {
 				String output = String.format(Locale.US, "<%s:%d>%s", name,
@@ -331,11 +338,28 @@ public abstract class WriteGabbi {
 				if (PRETTY_MODE) {
 					os.write("\n".getBytes());
 				}
-				return data;
-//				return data.toUpperCase(Locale.US);
+				return data.toUpperCase(Locale.US);
 			}
 		}
 		return "";
+	}
+	private static String blockString(String data, int blockSize) {
+		StringBuffer sb=new StringBuffer();
+		String start="";
+		for (int i=0;i<data.length();i+=blockSize) {
+			sb.append(start);
+			sb.append(data.substring(i,min(i+blockSize,data.length())));
+			start="\n";
+		}
+		data=sb.toString();
+		return data;
+	}
+
+	private static int min(int a, int b) {
+		if (a>b) {
+			return b;
+		}
+		return a;
 	}
 	
 	
