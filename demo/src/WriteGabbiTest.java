@@ -24,11 +24,6 @@ public class WriteGabbiTest extends WriteGabbi {
 	}
 
 	@Override
-	protected String getApplicationName() {
-		return "JavaTrustedQsl_v0.1";
-	}
-
-	@Override
 	protected Station[] getStations() {
 		Station station=new Station();
 		station.dxcc=291;
@@ -62,9 +57,11 @@ public class WriteGabbiTest extends WriteGabbi {
 		KeyStore keystore=WriteGabbi.getKeyStore(args[0],"");
 		try {
 			WriteGabbiTest writeGabbi= new WriteGabbiTest(keystore,new char[]{},alias);
-			FileOutputStream output= new FileOutputStream("gabbi_output.tq8");
-			writeGabbi.write(new GZIPOutputStream(output));
-			output.close();
+			if (writeGabbi.writeToLotw("test.tq8")==true) {
+				System.out.println("File uploaded successfully");
+			} else {
+				System.out.println("File uploaded failed");
+			}
 		} catch (KeyStoreException
 				| NoSuchAlgorithmException | IOException | UnrecoverableEntryException e) {
 			e.printStackTrace();

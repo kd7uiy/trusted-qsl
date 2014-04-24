@@ -25,6 +25,7 @@ package com.kd7uiy.trustedQsl;
  */
 
 import java.io.BufferedOutputStream;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -42,10 +43,13 @@ import java.security.cert.X509Certificate;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Enumeration;
+import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
+import java.util.zip.GZIPOutputStream;
 
 import com.kd7uiy.trustedQsl.HamBand.Band;
+import com.kd7uiy.trustedQsl.MultipartUtility.OutputStreamer;
 
 public abstract class WriteGabbi {
 	private static final boolean PRETTY_MODE = true;
@@ -61,7 +65,7 @@ public abstract class WriteGabbi {
 										// Qso/Station data
 
 	// Returns the application name
-	protected abstract String getApplicationName();
+//	protected abstract String getApplicationName();
 
 	// Returns all possible stations.
 	protected abstract Station[] getStations();
@@ -137,13 +141,39 @@ public abstract class WriteGabbi {
 			mIso8601Format.setTimeZone(TimeZone.getTimeZone("GMT"));
 		}
 	}
+	
+	public boolean writeToLotw(String filename) throws IOException {
+		  MultipartUtility multipart = new MultipartUtility("https://p1k.arrl.org/lotw/upload","UTF-8");
+		  multipart.addHeaderField("User-Agent", "TrustedQslJava");
+          multipart.addHeaderField("Test-Header", "Header-Value");
+           
+          multipart.addFilePartOutputStream("upfile", filename,new OutputStreamer() {
+			@Override
+			public void writeStream(OutputStream outputStream) throws IOException {
+				write(new GZIPOutputStream(outputStream));
+			}
+          });
+
+          List<String> response = multipart.finish();
+          for (String line:response) {
+        	  if (line.startsWith("<!-- .UPL.")) {
+        		  if (line.contains("accepted")) {
+        			  return true;
+        		  } else {
+        			  return false;
+        		  }
+        	  }
+          }
+		  
+		  return false;
+	}
 
 	// This function should be called to write the GAbbI file.
 	public void write(OutputStream os) throws IOException {
 		BufferedOutputStream out = new BufferedOutputStream(os);
 		out.write("Produced by KD7UIY's Trusted QSL Java Library\n\n"
 				.getBytes());
-		writeHeader(out);
+//		writeHeader(out);
 		int stationUID = 1;
 		Station[] stations = getStations();
 		for (Station station : stations) {
@@ -175,7 +205,7 @@ public abstract class WriteGabbi {
 
 		writeTag(os, "REC_TYPE", "tHEADER");
 		writeTag(os, "CATEGORY", "tQSL");
-		writeTag(os, "GabbI_CREATED_BY", getApplicationName());
+//		writeTag(os, "GabbI_CREATED_BY", getApplicationName());
 		writeTag(os, "GAbbI_CREATED_ON", mIso8601Format.format(new Date()));
 		writeTag(os, "GabbI_MESSAGE_DIGEST", mMessageDigestFormat);
 		writeTag(os, "GAbbI_SENDER", mCallSign); // This is the user's call sign
