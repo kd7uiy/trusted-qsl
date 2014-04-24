@@ -25,7 +25,6 @@ package com.kd7uiy.trustedQsl;
  */
 
 import java.io.BufferedOutputStream;
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -33,6 +32,7 @@ import java.security.InvalidKeyException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.security.Principal;
 import java.security.PrivateKey;
 import java.security.Signature;
 import java.security.SignatureException;
@@ -41,7 +41,6 @@ import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Locale;
@@ -65,7 +64,7 @@ public abstract class WriteGabbi {
 										// Qso/Station data
 
 	// Returns the application name
-//	protected abstract String getApplicationName();
+	// protected abstract String getApplicationName();
 
 	// Returns all possible stations.
 	protected abstract Station[] getStations();
@@ -82,27 +81,40 @@ public abstract class WriteGabbi {
 			p12 = KeyStore.getInstance("pkcs12");
 			p12.load(new FileInputStream(filename), password.toCharArray());
 
-			// Enumeration<String> e = p12.aliases();
-			// while (e.hasMoreElements()) {
-			// String alias = (String) e.nextElement();
-			// System.out.println("Alias- " + alias);
-			// X509Certificate c = (X509Certificate) p12.getCertificate(alias);
-			// System.out.println(c.toString());
-			//
-			// Principal subject = c.getSubjectDN();
-			// String subjectArray[] = subject.toString().split(",");
-			// for (String s : subjectArray) {
-			// String[] str = s.trim().split("=");
-			// String key = str[0];
-			// String value = str[1];
-			// System.out.println(key + " - " + value);
-			// }
-			// }
 		} catch (NoSuchAlgorithmException | CertificateException | IOException
 				| KeyStoreException e1) {
 			e1.printStackTrace();
 		}
 		return p12;
+	}
+
+	public static void loadP12(String filename, String password) {
+		KeyStore p12 = null;
+		try {
+			p12 = KeyStore.getInstance("pkcs12");
+			p12.load(new FileInputStream(filename), password.toCharArray());
+			Enumeration<String> e = p12.aliases();
+			while (e.hasMoreElements()) {
+				String alias = (String) e.nextElement();
+				System.out.println("Alias- " + alias);
+				X509Certificate c = (X509Certificate) p12.getCertificate(alias);
+				System.out.println(c.toString());
+
+				Principal subject = c.getSubjectDN();
+				String subjectArray[] = subject.toString().split(",");
+				for (String s : subjectArray) {
+					String[] str = s.trim().split("=");
+					String key = str[0];
+					String value = str[1];
+					System.out.println(key + " - " + value);
+				}
+			}
+		} catch (KeyStoreException | NoSuchAlgorithmException
+				| CertificateException | IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
 	}
 
 	public WriteGabbi(KeyStore keystore, char[] password, String alias)
@@ -141,31 +153,35 @@ public abstract class WriteGabbi {
 			mIso8601Format.setTimeZone(TimeZone.getTimeZone("GMT"));
 		}
 	}
-	
-	public boolean writeToLotw(String filename) throws IOException {
-		  MultipartUtility multipart = new MultipartUtility("https://p1k.arrl.org/lotw/upload","UTF-8");
-		  multipart.addHeaderField("User-Agent", "TrustedQslJava");
-          multipart.addHeaderField("Test-Header", "Header-Value");
-           
-          multipart.addFilePartOutputStream("upfile", filename,new OutputStreamer() {
-			@Override
-			public void writeStream(OutputStream outputStream) throws IOException {
-				write(new GZIPOutputStream(outputStream));
-			}
-          });
 
-          List<String> response = multipart.finish();
-          for (String line:response) {
-        	  if (line.startsWith("<!-- .UPL.")) {
-        		  if (line.contains("accepted")) {
-        			  return true;
-        		  } else {
-        			  return false;
-        		  }
-        	  }
-          }
-		  
-		  return false;
+	public boolean writeToLotw(String filename) throws IOException {
+		MultipartUtility multipart = new MultipartUtility(
+				"https://p1k.arrl.org/lotw/upload", "UTF-8");
+		multipart.addHeaderField("User-Agent", "TrustedQslJava");
+		multipart.addHeaderField("Test-Header", "Header-Value");
+
+		multipart.addFilePartOutputStream("upfile", filename,
+				new OutputStreamer() {
+					@Override
+					public void writeStream(OutputStream outputStream)
+							throws IOException {
+						write(new GZIPOutputStream(outputStream));
+					}
+				});
+
+		List<String> response = multipart.finish();
+		for (String line : response) {
+			if (line.startsWith("<!-- .UPL.")) {
+				if (line.contains("accepted")) {
+					return true;
+				} else {
+					return false;
+				}
+			}
+			System.out.println(line);
+		}
+
+		return false;
 	}
 
 	// This function should be called to write the GAbbI file.
@@ -173,7 +189,7 @@ public abstract class WriteGabbi {
 		BufferedOutputStream out = new BufferedOutputStream(os);
 		out.write("Produced by KD7UIY's Trusted QSL Java Library\n\n"
 				.getBytes());
-//		writeHeader(out);
+		writeHeader(out);
 		int stationUID = 1;
 		Station[] stations = getStations();
 		for (Station station : stations) {
@@ -203,18 +219,18 @@ public abstract class WriteGabbi {
 		writeTag(os, "CERTIFICATE", getCertificate());
 		eor(os);
 
-		writeTag(os, "REC_TYPE", "tHEADER");
-		writeTag(os, "CATEGORY", "tQSL");
-//		writeTag(os, "GabbI_CREATED_BY", getApplicationName());
-		writeTag(os, "GAbbI_CREATED_ON", mIso8601Format.format(new Date()));
-		writeTag(os, "GabbI_MESSAGE_DIGEST", mMessageDigestFormat);
-		writeTag(os, "GAbbI_SENDER", mCallSign); // This is the user's call sign
-		writeTag(os, "GAbbI_SIGN_ALGORITHM", mKey.getAlgorithm()); // This
-																	// should be
-																	// in the
-																	// certificate
-		writeTag(os, "GAbbI_VERSION", "0.25");
-		eor(os);
+//		writeTag(os, "REC_TYPE", "tHEADER");
+//		writeTag(os, "CATEGORY", "tQSL");
+//		// writeTag(os, "GabbI_CREATED_BY", getApplicationName());
+//		writeTag(os, "GAbbI_CREATED_ON", mIso8601Format.format(new Date()));
+//		writeTag(os, "GabbI_MESSAGE_DIGEST", mMessageDigestFormat);
+//		writeTag(os, "GAbbI_SENDER", mCallSign); // This is the user's call sign
+//		writeTag(os, "GAbbI_SIGN_ALGORITHM", mKey.getAlgorithm()); // This
+//																	// should be
+//																	// in the
+//																	// certificate
+//		writeTag(os, "GAbbI_VERSION", "0.25");
+//		eor(os);
 	}
 
 	private String getCertificate() {
@@ -315,7 +331,7 @@ public abstract class WriteGabbi {
 		}
 		writeTag(os, "REMARKS", qso.remarks);
 		writeTag(os, "RST_SENT", qso.rstSent);
-		writeTag(os, "SIGN_LOTW_V1.0", signQso(signatureData.toString()),"6");
+		writeTag(os, "SIGN_LOTW_V1.0", signQso(signatureData.toString()), "6");
 		writeTag(os, "SIGNDATA", signatureData.toString());
 		eor(os);
 	}
