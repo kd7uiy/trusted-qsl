@@ -1,15 +1,9 @@
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
-import java.security.PrivateKey;
 import java.security.UnrecoverableEntryException;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.Certificate;
 import java.util.Date;
-import java.util.zip.GZIPOutputStream;
-
 import com.kd7uiy.trustedQsl.HamBand.Band;
 import com.kd7uiy.trustedQsl.QsoData;
 import com.kd7uiy.trustedQsl.QsoData.Mode;

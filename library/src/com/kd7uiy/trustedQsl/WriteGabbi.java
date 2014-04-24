@@ -41,11 +41,14 @@ import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
 import java.util.zip.GZIPOutputStream;
+
+import javax.security.auth.x500.X500Principal;
 
 import com.kd7uiy.trustedQsl.HamBand.Band;
 import com.kd7uiy.trustedQsl.MultipartUtility.OutputStreamer;
@@ -88,32 +91,49 @@ public abstract class WriteGabbi {
 		return p12;
 	}
 
-	public static void loadP12(String filename, String password) {
+	public static String getCallSignFromP12(String filename, String password) throws CertificateException {
 		KeyStore p12 = null;
+		String call=null;
 		try {
 			p12 = KeyStore.getInstance("pkcs12");
 			p12.load(new FileInputStream(filename), password.toCharArray());
 			Enumeration<String> e = p12.aliases();
 			while (e.hasMoreElements()) {
 				String alias = (String) e.nextElement();
-				System.out.println("Alias- " + alias);
 				X509Certificate c = (X509Certificate) p12.getCertificate(alias);
-				System.out.println(c.toString());
+				
+				//This verifies that the certificate is from LOTW, or else it throws an exception
+				X500Principal issuer= c.getIssuerX500Principal();
+				String issuerArray[] = issuer.toString().split(",");
+				for (String s : issuerArray) {
+					String[] str = s.trim().split("=");
+					String key = str[0];
+					String value = str[1];
+					if (key.equals("OU") && !value.equals("Logbook of the World")) {
+						throw new CertificateException("This certificate is not a Logbook of the World Certificate!");
+					}
+//					System.out.println(key + " - " + value);
+				}
 
-				Principal subject = c.getSubjectDN();
+				//This gets the call sign.
+				X500Principal subject = c.getSubjectX500Principal();
 				String subjectArray[] = subject.toString().split(",");
 				for (String s : subjectArray) {
 					String[] str = s.trim().split("=");
 					String key = str[0];
 					String value = str[1];
-					System.out.println(key + " - " + value);
+					if (key.equals("OID.1.3.6.1.4.1.12348.1.1")) {
+						call=value;
+					}
+//					System.out.println(key + " - " + value);
 				}
 			}
 		} catch (KeyStoreException | NoSuchAlgorithmException
-				| CertificateException | IOException e) {
+				 | IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		return call;
 
 	}
 
@@ -121,6 +141,13 @@ public abstract class WriteGabbi {
 			throws KeyStoreException, NoSuchAlgorithmException,
 			UnrecoverableEntryException {
 		init(keystore, password, alias);
+	}
+	
+	public WriteGabbi(KeyStore keystore, char[] password)
+			throws KeyStoreException, NoSuchAlgorithmException,
+			UnrecoverableEntryException {
+		Enumeration<String> e = keystore.aliases();
+		init(keystore, password, e.nextElement());
 	}
 
 	private void init(KeyStore keystore, char[] password, String alias)
@@ -134,13 +161,6 @@ public abstract class WriteGabbi {
 		mKey = (PrivateKey) pkEntry.getPrivateKey();
 		// mMessageDigestFormat= mCertificate.getSigAlgName();
 		setUpSimpleDateTime();
-	}
-
-	public WriteGabbi(KeyStore keystore, char[] password)
-			throws KeyStoreException, NoSuchAlgorithmException,
-			UnrecoverableEntryException {
-		Enumeration<String> e = keystore.aliases();
-		init(keystore, password, e.nextElement());
 	}
 
 	private void setUpSimpleDateTime() {
@@ -178,7 +198,7 @@ public abstract class WriteGabbi {
 					return false;
 				}
 			}
-			System.out.println(line);
+//			System.out.println(line);
 		}
 
 		return false;
