@@ -1,2 +1,6 @@
 demo/gabbi_output.txt
 *.txt
+*/.project
+*/.settings/*
+*/.settings
+*/.classpath
