@@ -1,6 +1,10 @@
 demo/gabbi_output.txt
 *.txt
-*/.project
-*/.settings/*
-*/.settings
-*/.classpath
+demo/.project
+demo/.settings/*
+demo/.settings
+demo/.classpath
+library/.project
+library/.settings/*
+library/.settings
+library/.classpath
