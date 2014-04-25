@@ -32,7 +32,6 @@ import java.security.InvalidKeyException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
-import java.security.Principal;
 import java.security.PrivateKey;
 import java.security.Signature;
 import java.security.SignatureException;
@@ -41,7 +40,6 @@ import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Locale;
@@ -130,7 +128,6 @@ public abstract class WriteGabbi {
 			}
 		} catch (KeyStoreException | NoSuchAlgorithmException
 				 | IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return call;
@@ -239,18 +236,6 @@ public abstract class WriteGabbi {
 		writeTag(os, "CERTIFICATE", getCertificate());
 		eor(os);
 
-//		writeTag(os, "REC_TYPE", "tHEADER");
-//		writeTag(os, "CATEGORY", "tQSL");
-//		// writeTag(os, "GabbI_CREATED_BY", getApplicationName());
-//		writeTag(os, "GAbbI_CREATED_ON", mIso8601Format.format(new Date()));
-//		writeTag(os, "GabbI_MESSAGE_DIGEST", mMessageDigestFormat);
-//		writeTag(os, "GAbbI_SENDER", mCallSign); // This is the user's call sign
-//		writeTag(os, "GAbbI_SIGN_ALGORITHM", mKey.getAlgorithm()); // This
-//																	// should be
-//																	// in the
-//																	// certificate
-//		writeTag(os, "GAbbI_VERSION", "0.25");
-//		eor(os);
 	}
 
 	private String getCertificate() {
@@ -268,6 +253,7 @@ public abstract class WriteGabbi {
 		writeTag(os, "STATION_UID", "" + station.uid);
 		writeTag(os, "CERT_UID", "1");
 		StringBuilder sb = new StringBuilder();
+		
 		// Preserve alphabetic order from this point forward!
 		sb.append(writeTag(os, "CA_PROVIDENCE", station.caProvidence));
 		writeTag(os, "CALL", mCallSign);
@@ -326,8 +312,8 @@ public abstract class WriteGabbi {
 			throws IOException {
 		StringBuilder signatureData = new StringBuilder(station.baseSig);
 
-		// Note, these must remain in alphabetic order, except REC_TYPE and
-		// LoTW_SIGN
+		// Note, these must remain in alphabetic order, except REC_TYPE,
+		// SIGNDATA, and SIGN_LOTW_V1.0
 		writeTag(os, "REC_TYPE", "tCONTACT");
 		writeTag(os, "STATION_UID", "" + station.uid);
 		signatureData.append(writeTag(os, "BAND", HamBand.getText(qso.band)));
@@ -391,11 +377,6 @@ public abstract class WriteGabbi {
 			byte[] signed = signature.sign();
 			output = new String(Base64Coder.encode(signed));
 
-			// //Verification code
-			// signature.initVerify(mCertificate);
-			// signature.update(data.getBytes());
-			// System.out.println(signature.verify(signed));
-
 		} catch (NoSuchAlgorithmException | InvalidKeyException
 				| SignatureException e) {
 			e.printStackTrace();
@@ -451,10 +432,4 @@ public abstract class WriteGabbi {
 		}
 		return a;
 	}
-
-	// //Just for very basic testing, commented out for building the library
-	// public static void main(String args[]) {
-	// System.out.println(isValidCallsign("KD7UIY"));
-	// System.out.println(isValidCallsign("@KD7UIY"));
-	// }
 }
