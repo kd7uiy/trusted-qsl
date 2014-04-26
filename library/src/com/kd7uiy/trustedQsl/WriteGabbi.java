@@ -89,7 +89,7 @@ public abstract class WriteGabbi {
 		return p12;
 	}
 
-	public static String getCallSignFromP12(String filename, String password) throws CertificateException {
+	public static String getCallSignFromP12(String filename, String password) throws CertificateException, IOException {
 		KeyStore p12 = null;
 		String call=null;
 		try {
@@ -126,8 +126,7 @@ public abstract class WriteGabbi {
 //					System.out.println(key + " - " + value);
 				}
 			}
-		} catch (KeyStoreException | NoSuchAlgorithmException
-				 | IOException e) {
+		} catch (KeyStoreException | NoSuchAlgorithmException e) {
 			e.printStackTrace();
 		}
 		return call;
