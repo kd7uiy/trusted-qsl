@@ -28,7 +28,9 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableEntryException;
 import java.util.Date;
+
 import com.kd7uiy.trustedQsl.HamBand.Band;
+import com.kd7uiy.trustedQsl.P12Certificate;
 import com.kd7uiy.trustedQsl.QsoData;
 import com.kd7uiy.trustedQsl.QsoData.Mode;
 import com.kd7uiy.trustedQsl.Station;
@@ -72,7 +74,7 @@ public class WriteGabbiTest extends WriteGabbi {
 	//First argument is the location of your .p12 file
 	public static void main(String[] args) {
 		final String alias="trustedqsl user certificate";
-		KeyStore keystore=WriteGabbi.getKeyStore(args[0],"");
+		KeyStore keystore=P12Certificate.getKeyStore(args[0],"");
 		try {
 			WriteGabbiTest writeGabbi= new WriteGabbiTest(keystore,new char[]{},alias);
 			if (writeGabbi.writeToLotw("test.tq8")==true) {
