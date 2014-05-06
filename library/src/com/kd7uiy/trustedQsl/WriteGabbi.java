@@ -50,7 +50,6 @@ import com.kd7uiy.trustedQsl.MultipartUtility.OutputStreamer;
 public abstract class WriteGabbi {
 	private static final boolean PRETTY_MODE = true;
 	private String mMessageDigestFormat = "SHA1withRSA";
-	private String mCallSign;
 	private SimpleDateFormat mTimeFormat;
 	private PrivateKey mKey;
 	private X509Certificate mCertificate;
@@ -194,7 +193,7 @@ public abstract class WriteGabbi {
 		
 		// Preserve alphabetic order from this point forward!
 		sb.append(writeTag(os, "CA_PROVIDENCE", station.caProvidence));
-		writeTag(os, "CALL", mCallSign);
+		writeTag(os, "CALL", station.call);
 		writeTag(os, "CL_CITY", "" + station.clCity);
 		writeTag(os, "CONT", station.continent);
 		sb.append(writeTag(os, "CQZ", "" + station.cqz));
