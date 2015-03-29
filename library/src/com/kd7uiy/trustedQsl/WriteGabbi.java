@@ -109,6 +109,10 @@ public abstract class WriteGabbi {
 	}
 
 	public boolean writeToLotw(String filename) throws IOException {
+		if (getStations().length<=0) {
+			//No stations, so no need to do an upload.
+			return true;
+		}
 		MultipartUtility multipart = new MultipartUtility(
 				"https://p1k.arrl.org/lotw/upload", "UTF-8");
 		multipart.addHeaderField("User-Agent", "TrustedQslJava");
@@ -121,7 +125,7 @@ public abstract class WriteGabbi {
 							throws IOException {
 						write(new GZIPOutputStream(outputStream));
 					}
-				});
+				},"text/plain");
 
 		List<String> response = multipart.finish();
 		for (String line : response) {

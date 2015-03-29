@@ -46,17 +46,17 @@ public class MultipartUtility {
 		this.charset = charset;
 
 		// creates a unique boundary based on time stamp
-		boundary = "===" + System.currentTimeMillis() + "===";
+		boundary = "t"+System.currentTimeMillis();
 
 		URL url = new URL(requestURL);
 		httpConn = (HttpURLConnection) url.openConnection();
 		httpConn.setUseCaches(false);
 		httpConn.setDoOutput(true); // indicates POST method
 		httpConn.setDoInput(true);
+		httpConn.setRequestMethod("POST");
 		httpConn.setRequestProperty("Content-Type",
 				"multipart/form-data; boundary=" + boundary);
 		httpConn.setRequestProperty("User-Agent", "CodeJava Agent");
-		httpConn.setRequestProperty("Test", "Bonjour");
 		outputStream = httpConn.getOutputStream();
 		writer = new PrintWriter(new OutputStreamWriter(outputStream, charset),
 				true);
@@ -90,11 +90,11 @@ public class MultipartUtility {
 	 *            a File to be uploaded
 	 * @throws IOException
 	 */
-	public void addFilePart(String fieldName, File uploadFile)
+	public void addFilePart(String fieldName, File uploadFile,String mimeType)
 			throws IOException {
 		String fileName = uploadFile.getName();
 		addFilePartOutputStream(fieldName, fileName,
-				new OutputStreamerFromFile(uploadFile));
+				new OutputStreamerFromFile(uploadFile),mimeType);
 
 		writer.append(LINE_FEED);
 		writer.flush();
@@ -114,7 +114,7 @@ public class MultipartUtility {
 	 * @throws IOException
 	 */
 	public void addFilePartOutputStream(String fieldName, String fileName,
-			OutputStreamer streamer) throws IOException {
+			OutputStreamer streamer,String mimeType) throws IOException {
 		writer.append("--" + boundary).append(LINE_FEED);
 		writer.append(
 				"Content-Disposition: form-data; name=\"" + fieldName
@@ -124,7 +124,7 @@ public class MultipartUtility {
 				"Content-Type: "
 						+ URLConnection.guessContentTypeFromName(fileName))
 				.append(LINE_FEED);
-		writer.append("Content-Transfer-Encoding: binary").append(LINE_FEED);
+		writer.append("Content-Transfer-Encoding: "+mimeType).append(LINE_FEED);
 		writer.append(LINE_FEED);
 		writer.flush();
 
@@ -174,7 +174,7 @@ public class MultipartUtility {
 			reader.close();
 			httpConn.disconnect();
 		} else {
-			throw new IOException("Server returned non-OK status: " + status);
+			throw new IOException("Server returned non-OK status: " + status+", message "+httpConn.getResponseMessage());
 		}
 
 		return response;

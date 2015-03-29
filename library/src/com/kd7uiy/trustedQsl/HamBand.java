@@ -3,135 +3,158 @@ package com.kd7uiy.trustedQsl;
 /*
  * The MIT License (MIT)
 
-Copyright (c) 2014 Ben Pearson, http://www.kd7uiy.com
+ Copyright (c) 2014 Ben Pearson, http://www.kd7uiy.com
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+ Permission is hereby granted, free of charge, to any person obtaining a copy
+ of this software and associated documentation files (the "Software"), to deal
+ in the Software without restriction, including without limitation the rights
+ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ copies of the Software, and to permit persons to whom the Software is
+ furnished to do so, subject to the following conditions:
 
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
+ The above copyright notice and this permission notice shall be included in
+ all copies or substantial portions of the Software.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-THE SOFTWARE.
+ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ THE SOFTWARE.
  */
 
 import java.util.Locale;
 
 public class HamBand {
-	
-	public enum Band {UNKNOWN,W2190M,W630M,W560M,W160M,W80M,W60M,W40M,W30M,W20M,W17M,
-		W15M,W12M,W10M,W6M,W4M,W2M,W1_25M,W70CM,W33CM,W23CM,
-		W13CM,W9CM,W5CM,W3CM,W1_2CM,W6MM,W4MM,W2_5MM,W2MM,W1MM,LIGHT}
-	//Frequency in kHz
+
+	public enum Band {
+		UNKNOWN, W2190M, W630M, W560M, W160M, W80M, W60M, W40M, W30M, W20M, W17M, W15M, W12M, W10M, W6M, W4M, W2M, W1_25M, W70CM, W33CM, W23CM, W13CM, W9CM, W5CM, W3CM, W1_2CM, W6MM, W4MM, W2_5MM, W2MM, W1MM, LIGHT
+	}
+
+	public static boolean isHf(Band band) {
+		switch (band) {
+		case W10M:
+		case W12M:
+		case W15M:
+		case W160M:
+		case W17M:
+		case W20M:
+		case W2190M:
+		case W30M:
+		case W40M:
+		case W560M:
+		case W60M:
+		case W630M:
+		case W80M:
+			return true;
+		default:
+			return false;
+		}
+	}
+
+	// Frequency in kHz
 	public static Band findBand(double freq) {
-		if (freq>= 135.9 && freq<=137.1) {
+		if (freq >= 135.9 && freq <= 137.1) {
 			return Band.W2190M;
 		}
-		if (freq>= 471.9 && freq<=479.1) {
+		if (freq >= 471.9 && freq <= 479.1) {
 			return Band.W630M;
 		}
-		if (freq>= 500 && freq<=504.1) {
+		if (freq >= 500 && freq <= 504.1) {
 			return Band.W560M;
 		}
-		if (freq>=1799.9 && freq<=2000.1) {
+		if (freq >= 1799.9 && freq <= 2000.1) {
 			return Band.W160M;
 		}
-		if (freq>=3500 && freq<=4000) {
+		if (freq >= 3500 && freq <= 4000) {
 			return Band.W80M;
 		}
-		if (freq>=5250 && freq<=5450) {
+		if (freq >= 5250 && freq <= 5450) {
 			return Band.W60M;
 		}
-		if (freq>=7000 && freq<=7300) {
+		if (freq >= 7000 && freq <= 7300) {
 			return Band.W40M;
 		}
-		if (freq>=10100 && freq<=10150) {
+		if (freq >= 10100 && freq <= 10150) {
 			return Band.W30M;
 		}
-		if (freq>= 14000 && freq<=14350) {
+		if (freq >= 14000 && freq <= 14350) {
 			return Band.W20M;
 		}
-		if (freq>=18068 && freq<=18168) {
+		if (freq >= 18068 && freq <= 18168) {
 			return Band.W17M;
 		}
-		if (freq>=21000 && freq<=21450) {
+		if (freq >= 21000 && freq <= 21450) {
 			return Band.W15M;
 		}
-		if (freq>=24890 && freq<=24990) {
+		if (freq >= 24890 && freq <= 24990) {
 			return Band.W12M;
 		}
-		if (freq>=28000 && freq<=29700) {
+		if (freq >= 28000 && freq <= 29700) {
 			return Band.W10M;
 		}
-		if (freq>=50000 && freq<=54000) {
+		if (freq >= 50000 && freq <= 54000) {
 			return Band.W6M;
 		}
-		if (freq>=69900 && freq<=70500) {
+		if (freq >= 69900 && freq <= 70500) {
 			return Band.W4M;
 		}
-		if (freq>= 144000 && freq<=148000) {
+		if (freq >= 144000 && freq <= 148000) {
 			return Band.W2M;
 		}
-		if (freq>=219000 && freq<=220000) {
+		if (freq >= 219000 && freq <= 220000) {
 			return Band.W1_25M;
 		}
-		if (freq>=222000 && freq<=225000) {
+		if (freq >= 222000 && freq <= 225000) {
 			return Band.W1_25M;
 		}
-		if (freq>=420000 && freq<=450000) {
+		if (freq >= 420000 && freq <= 450000) {
 			return Band.W70CM;
 		}
-		if (freq>=902000 && freq<=928000) {
+		if (freq >= 902000 && freq <= 928000) {
 			return Band.W33CM;
 		}
-		if (freq>=1240000 && freq<=1300000) {
+		if (freq >= 1240000 && freq <= 1300000) {
 			return Band.W23CM;
 		}
-		if (freq>=2300000 && freq<=2450000) {
+		if (freq >= 2300000 && freq <= 2450000) {
 			return Band.W13CM;
 		}
-		if (freq>=3300000 && freq<=3500000) {
+		if (freq >= 3300000 && freq <= 3500000) {
 			return Band.W9CM;
 		}
-		if (freq>=5650000 && freq<=5925000) {
+		if (freq >= 5650000 && freq <= 5925000) {
 			return Band.W5CM;
 		}
-		if (freq>=10000000 && freq<=10500000) {
+		if (freq >= 10000000 && freq <= 10500000) {
 			return Band.W3CM;
 		}
-		if (freq>=24000000 && freq<=24250000) {
+		if (freq >= 24000000 && freq <= 24250000) {
 			return Band.W1_2CM;
 		}
-		if (freq>=47000000 && freq<=47200000) {
+		if (freq >= 47000000 && freq <= 47200000) {
 			return Band.W6MM;
 		}
-		if (freq>=75500000 && freq<=81000000) {
+		if (freq >= 75500000 && freq <= 81000000) {
 			return Band.W4MM;
 		}
-		if (freq>=122250000 && freq<=123000000) {
+		if (freq >= 122250000 && freq <= 123000000) {
 			return Band.W2_5MM;
 		}
-		if (freq>=134000000 && freq<=141000000) {
+		if (freq >= 134000000 && freq <= 141000000) {
 			return Band.W2MM;
 		}
-		if (freq>=241000000 && freq<=250000000) {
+		if (freq >= 241000000 && freq <= 250000000) {
 			return Band.W1MM;
 		}
-		if (freq>=10500000000l) {
+		if (freq >= 10500000000l) {
 			return Band.LIGHT;
 		}
-		throw new IllegalArgumentException("No band found for frequency "+freq);
+		throw new IllegalArgumentException("No band found for frequency "
+				+ freq);
 	}
-	
+
 	public static double frequencyUnitToMultiplier(String unit) {
 		if (unit.equals("Hz")) {
 			return 1e-3;
@@ -142,21 +165,23 @@ public class HamBand {
 		} else if (unit.equals("GHz")) {
 			return 1e6;
 		}
-		throw new IllegalArgumentException("Invalid unit "+unit+" detected.");
+		throw new IllegalArgumentException("Invalid unit " + unit
+				+ " detected.");
 	}
-	
+
 	public static boolean isValidFrequency(double freq) {
 		try {
 			findBand(freq);
 			return true;
-		} catch (IllegalArgumentException ex) { }
+		} catch (IllegalArgumentException ex) {
+		}
 		return false;
 	}
 
 	public static double findFreqInBand(String text) {
-		Band band=findBand(text.toUpperCase(Locale.US));
+		Band band = findBand(text.toUpperCase(Locale.US));
 		return findFreqInBand(band);
-		
+
 	}
 
 	public static double findFreqInBand(Band band) {
@@ -222,7 +247,7 @@ public class HamBand {
 		case W1MM:
 			return 241000000;
 		case LIGHT:
-			return  4.4678e+11;
+			return 4.4678e+11;
 		default:
 			break;
 		}
@@ -230,7 +255,7 @@ public class HamBand {
 	}
 
 	public static Band findBand(String raw) {
-		String text=raw.toUpperCase(Locale.US);
+		String text = raw.toUpperCase(Locale.US);
 		if (text.equals("2190M")) {
 			return Band.W2190M;
 		}
@@ -324,7 +349,7 @@ public class HamBand {
 		if (text.equals("LIGHT")) {
 			return Band.LIGHT;
 		}
-		throw new IllegalArgumentException ("Invalid text for a band");
+		throw new IllegalArgumentException("Invalid text for a band");
 	}
 
 	public static String getText(Band band) {
@@ -390,7 +415,7 @@ public class HamBand {
 		case W1MM:
 			return "1mm";
 		case LIGHT:
-			return  "light";
+			return "light";
 		default:
 			break;
 		}
